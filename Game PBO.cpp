@@ -7,7 +7,7 @@ using namespace std;
 
 const int width = 20;
 const int height = 20;
-const int maxBullets = 10; // Maksimal peluru yang ditembakkan pada dalam layar
+const int maxBullets = 10;
 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 COORD cursorPos;
 
@@ -17,12 +17,18 @@ void clearScreen() {
     SetConsoleCursorPosition(hConsole, cursorPos);
 }
 
-// class pesawat
-class Player {
+// Base class untuk semua entitas dalam game
+class Entity {
 public:
-    int x;
+    int x, y;
+    Entity(int xPos, int yPos) : x(xPos), y(yPos) {}
+    virtual ~Entity() {}
+};
 
-    Player() { x = width / 2; }
+// Class Player
+class Player : public Entity {
+public:
+    Player() : Entity(width / 2, height - 1) {}
     ~Player() { cout << "Player destroyed" << endl; }
 
     void move(char direction) {
@@ -31,13 +37,11 @@ public:
     }
 };
 
-// class bullet
-class Bullet {
+// Class Bullet
+class Bullet : public Entity {
 public:
-    int x, y;
     bool active;
-
-    Bullet() { x = y = -1; active = false; }
+    Bullet() : Entity(-1, -1), active(false) {}
     ~Bullet() { cout << "Bullet destroyed" << endl; }
 
     void shoot(int px) {
@@ -56,18 +60,12 @@ public:
     }
 };
 
-// class enemy
-class Enemy {
+// Class Enemy
+class Enemy : public Entity {
 public:
-    int x, y;
     int moveDelay;
     int moveCounter;
-
-    Enemy() {
-        reset();
-        moveDelay = 3;
-        moveCounter = 0;
-    }
+    Enemy() : Entity(rand() % width, 0), moveDelay(3), moveCounter(0) {}
     ~Enemy() { cout << "Enemy destroyed" << endl; }
 
     void update() {
@@ -85,7 +83,7 @@ public:
     }
 };
 
-// class game (Untuk Mengatur Permainan)
+// Class Game
 class Game {
 public:
     Player player;
@@ -94,9 +92,7 @@ public:
     bool gameOver;
     int score;
 
-    Game() {
-        gameOver = false;
-        score = 0;
+    Game() : gameOver(false), score(0) {
         bullets.resize(maxBullets);
     }
     ~Game() { cout << "Game Over! Skor akhir: " << score << endl; }
@@ -122,7 +118,7 @@ public:
                         }
                     }
                     if (!printed) {
-                        if (i == height - 1 && j == player.x) cout << "^";
+                        if (i == player.y && j == player.x) cout << "^";
                         else cout << " ";
                     }
                 }
@@ -181,10 +177,8 @@ public:
     }
 };
 
-
 int main() {
     Game game;
     game.run();
     return 0;
 }
-
